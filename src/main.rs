@@ -5,13 +5,13 @@ use std::f64::consts::*;
 
 const IMGX: u32 = 2000;
 const IMGY: u32 = 2000;
-const res: u32 = 8000;
+const res: u32 = 100000;
 const centre: (f64, f64) = (IMGX as f64 / 2., IMGY as f64 / 2.);
 
 // Some path that takes t from 0 -> 1 and should close on itself
 fn path(t: f64) -> (f64, f64) {
     let theta = 2.*PI*t;
-    let r = 300.*(1.-theta.cos()*(3.*theta).sin());
+    let r = 500.*(1.-theta.cos()*(3.*theta).sin());
     (r*theta.cos() + centre.0, r*theta.sin() + centre.1)
 }
 
@@ -28,7 +28,7 @@ fn in_bounds(x: u32, y: u32) -> bool {
 }
 
 fn envelope(t: f64) -> f64 {
-    (2.*PI*t).cos()*100.+(4.*PI*t).sin()*200.
+    (2.*PI*t).cos()*100.+(4.*PI*t).sin()*50.
 }
 
 // Put in a height from -1 -> 1
@@ -59,7 +59,7 @@ fn linspace(a: f64, b: f64, n: u32) -> Vec<f64>{
 fn main() {
     let mut imgbuf = image::ImageBuffer::new(IMGX, IMGY);
     let fout = &mut File::create("spiro.png").unwrap();
-    for h in linspace(-2., 2., 50).iter(){
+    for h in linspace(-2., 2., 20).iter(){
         let p = envelope_path(&path, gen_envelope(*h));
         for i in 0..res {
             let t = (i as f64) / (res as f64 - 1.0);
