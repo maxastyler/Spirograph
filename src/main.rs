@@ -56,9 +56,30 @@ fn linspace(a: f64, b: f64, n: u32) -> Vec<f64>{
                ).collect()
 }
 
+fn spiro_image(img_res: (u32, u32), path_spread: Vec<f64>, path_points: Vec<f64>, path: & Fn(f64) -> (f64, f64), envelope_generator: Box<Fn(f64) -> Box<Fn(f64) -> f64>>) -> image::ImageBuffer<image::Luma<u8>, std::vec::Vec<u8>> {
+    let mut imgbuf = image::ImageBuffer::new(img_res.0, img_res.1);
+    for s in path_spread.iter() {
+        let env_path = envelope_path(path, envelope_generator(*s));
+        for t in path_points.iter() {
+            let (xf, yf) = env_path(*t);
+            let (x, y) = (xf.round() as u32, yf.round() as u32);
+            if in_bounds(x, y) {
+                let pix = imgbuf.get_pixel_mut(x, y);
+                *pix = image::Luma([255 as u8]);
+            }
+        }
+    }
+    imgbuf
+}
+
+fn path_points(r: u32) -> Vec<f64> {
+    (0..r).map(|i| (i as f64) / (res as f64 - 1.0)).collect()
+}
+
 fn main() {
     let mut imgbuf = image::ImageBuffer::new(IMGX, IMGY);
     let fout = &mut File::create("spiro.png").unwrap();
+    let img = spiro_image((2000, 2000), linspace(-2., 2., 20), path_points(100000), &path, Box::new(gen_envelope));
     for h in linspace(-2., 2., 20).iter(){
         let p = envelope_path(&path, gen_envelope(*h));
         for i in 0..res {
@@ -72,5 +93,5 @@ fn main() {
         }
     }
 
-    image::ImageLuma8(imgbuf).save(fout, image::PNG).unwrap();
+    image::ImageLuma8(img).save(fout, image::PNG).unwrap();
 }
